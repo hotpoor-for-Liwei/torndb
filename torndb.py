@@ -128,7 +128,7 @@ class Connection(object):
     def query(self, query, *parameters, **kwparameters):
         """Returns a row list for the given query and parameters."""
         cursor = self._cursor()
-        params = tuple([tuple([i[0], None]) if type(i) is tuple and len(i) == 1 else i for i in parameters])
+        params = tuple([i+tuple([None, None]) if type(i) is tuple and len(i) <= 1 else i for i in parameters])
         try:
             self._execute(cursor, query, params, kwparameters)
             column_names = [d[0] for d in cursor.description]
