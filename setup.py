@@ -21,7 +21,7 @@ version = "0.1"
 distutils.core.setup(
     name="torndb",
     version=version,
-    py_modules=["torndb"],
+    py_modules=["torndb", "tornlite"],
     author="Facebook",
     author_email="python-tornado@googlegroups.com",
     url="https://github.com/bdarnell/torndb",
