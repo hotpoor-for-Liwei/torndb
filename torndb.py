@@ -135,7 +135,8 @@ class Connection(object):
         if "select" in query.lower() and "in %s" in query.lower() and len(parameters) == 1:
             params = parameters[0] + tuple([None])
             query = query % ("(%s)" % ','.join(len(params)*["%s"]))
-            print query
+        else:
+            params = parameters
         try:
             self._execute(cursor, query, params, kwparameters)
             column_names = [d[0] for d in cursor.description]
