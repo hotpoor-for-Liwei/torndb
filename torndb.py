@@ -42,8 +42,8 @@ except ImportError:
     else:
         raise
 
-version = "0.1"
-version_info = (0, 1, 0, 0)
+version = "0.2"
+version_info = (0, 2, 0, 0)
 
 class Connection(object):
     """A lightweight wrapper around MySQLdb DB-API connections.
@@ -58,19 +58,23 @@ class Connection(object):
     Cursors are hidden by the implementation, but other than that, the methods
     are very similar to the DB-API.
 
-    We explicitly set the timezone to UTC and the character encoding to
-    UTF-8 on all connections to avoid time zone and encoding errors.
+    We explicitly set the timezone to UTC and assume the character encoding to
+    UTF-8 (can be changed) on all connections to avoid time zone and encoding errors.
+
+    The sql_mode parameter is set by default to "traditional", which "gives an error instead of a warning"
+    (http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html). However, it can be set to
+    any other mode including blank (None) thereby explicitly clearing the SQL mode.
     """
     def __init__(self, host, database, user=None, password=None,
                  max_idle_time=7 * 3600, connect_timeout=0,
-                 time_zone="+0:00"):
+                 time_zone="+0:00", charset = "utf8", sql_mode="TRADITIONAL"):
         self.host = host
         self.database = database
         self.max_idle_time = float(max_idle_time)
 
-        args = dict(conv=CONVERSIONS, use_unicode=True, charset="utf8",
+        args = dict(conv=CONVERSIONS, use_unicode=True, charset=charset,
                     db=database, init_command=('SET time_zone = "%s"' % time_zone),
-                    connect_timeout=connect_timeout, sql_mode="TRADITIONAL")
+                    connect_timeout=connect_timeout, sql_mode=sql_mode)
         if user is not None:
             args["user"] = user
         if password is not None:
@@ -137,7 +141,11 @@ class Connection(object):
             cursor.close()
 
     def get(self, query, *parameters, **kwparameters):
-        """Returns the first row returned for the given query."""
+        """Returns the (singular) row returned by the given query.
+
+        If the query has no results, returns None.  If it has
+        more than one result, raises an exception.
+        """
         rows = self.query(query, *parameters, **kwparameters)
         if not rows:
             return None
